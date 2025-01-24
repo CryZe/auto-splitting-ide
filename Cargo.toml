@@ -1,0 +1,38 @@
+[package]
+name = "auto-splitting-ide"
+version = "0.1.0"
+authors = ["Christopher Serr <christopher.serr@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+livesplit-auto-splitting = { path = "P:\\livesplit-core\\crates\\livesplit-auto-splitting", features = ["debugger-support"] }
+dioxus = { version = "0.6.0", features = [] }
+window-vibrancy = "0.5.2"
+rfd = "0.15.2"
+indexmap = "2.7.1"
+time = { version = "0.3.36", features = ["local-offset"] }
+windows-sys = "0.59.0"
+dioxus-material-icons = "3.0.0"
+byte-unit = "5.0.3"
+notify = "8.0.0"
+mime_guess = "2.0.5"
+
+[features]
+default = ["desktop"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
