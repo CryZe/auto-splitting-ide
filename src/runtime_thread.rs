@@ -1,16 +1,22 @@
-use std::{sync::Arc, thread, time::Instant};
+use std::{
+    sync::{atomic::AtomicBool, Arc},
+    thread,
+    time::Instant,
+};
 
 use dioxus::prelude::*;
 use livesplit_auto_splitting::{AutoSplitter, LogLevel, Timer};
 
 use crate::IdeTimer;
 
+pub static RUNNING: AtomicBool = AtomicBool::new(true);
+
 pub fn run(
     auto_splitter: SyncSignal<Option<AutoSplitter<IdeTimer>>>,
     mut timer: SyncSignal<IdeTimer>,
 ) {
     let mut next_tick = Instant::now();
-    loop {
+    while RUNNING.load(std::sync::atomic::Ordering::Relaxed) {
         let tick_rate = if let Some(auto_splitter) = auto_splitter.read().as_ref() {
             let mut auto_splitter_lock = auto_splitter.lock();
             let now = Instant::now();

@@ -1,11 +1,10 @@
 mod central_panel;
-mod code_editor;
 mod divider;
 mod left_side_bar;
 mod panel;
 mod right_side_bar;
 mod side_bar;
-mod source_panel;
+pub mod swapy;
 mod toggle;
 mod variables;
 mod widgets;
@@ -13,13 +12,11 @@ mod widgets;
 use std::fmt;
 
 pub use central_panel::*;
-pub use code_editor::*;
 pub use divider::*;
 pub use left_side_bar::*;
 pub use panel::*;
 pub use right_side_bar::*;
 pub use side_bar::*;
-pub use source_panel::*;
 pub use toggle::*;
 pub use variables::*;
 pub use widgets::*;

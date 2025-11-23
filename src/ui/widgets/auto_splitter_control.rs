@@ -1,4 +1,4 @@
-use dioxus::prelude::*;
+use dioxus::{desktop::window, prelude::*};
 use livesplit_auto_splitting::{AutoSplitter, CompiledAutoSplitter, Runtime};
 use notify::{EventKind, RecursiveMode, Watcher};
 
@@ -16,6 +16,7 @@ pub fn AutoSplitterControl(
 ) -> Element {
     let open = move |_| async move {
         let Some(file) = rfd::AsyncFileDialog::new()
+            .set_parent(&window().window)
             .add_filter("WebAssembly Files", &["wasm"])
             .add_filter("All Files", &["*"])
             .pick_file()
@@ -29,7 +30,7 @@ pub fn AutoSplitterControl(
             .load_file(file.path(), runtime, module, auto_splitter);
     };
 
-    let wasm_path = timer.read().wasm_path;
+    let mut wasm_path = timer.read().wasm_path;
 
     use_memo(move || {
         struct NotEq<T>(T);
@@ -67,6 +68,14 @@ pub fn AutoSplitterControl(
         Widget { title: "Auto Splitter",
             button { onclick: open, "Open" }
             if has_auto_splitter {
+                button {
+                    onclick: move |_| {
+                        module.set(None);
+                        auto_splitter.set(None);
+                        wasm_path.set(None);
+                    },
+                    "Close"
+                }
                 button { onclick: move |_| timer.read().restart(runtime, module, auto_splitter),
                     "Restart"
                 }

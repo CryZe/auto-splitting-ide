@@ -22,33 +22,43 @@ pub fn Widget(title: &'static str, children: Element) -> Element {
     let mut max_height = use_signal(|| 0.0);
 
     rsx! {
-        h2 {
-            cursor: "pointer",
-            position: "relative",
-            onclick: move |_| {
-                *visible.write() ^= true;
-            },
-            div {
-                position: "absolute",
-                transform: if *visible.read() { "rotate(0deg)" } else { "rotate(-90deg)" },
-                transition: "transform 0.25s",
-                img {
-                    width: "22px",
-                    height: "22px",
-                    src: asset!("assets/collapse.svg"),
+        div { "data-swapy-slot": title,
+            div { "data-swapy-item": title, class: "widget",
+                h2 {
+                    "data-swapy-handle": true,
+                    cursor: "pointer",
+                    position: "relative",
+                    onclick: move |_| {
+                        *visible.write() ^= true;
+                    },
+                    div {
+                        position: "absolute",
+                        transform: if *visible.read() { "rotate(0deg)" } else { "rotate(-90deg)" },
+                        transition: "transform 0.25s",
+                        svg {
+                            width: "22px",
+                            height: "22px",
+                            view_box: "0 0 24 24",
+                            path {
+                                fill: "white",
+                                d: "M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z",
+                            }
+                        }
+                    }
+                    {title}
+                }
+                div {
+                    class: "collapsible",
+                    height: if *visible.read() { "auto" } else { "0" },
+                    opacity: if *visible.read() { "1" } else { "0" },
+                    onmounted: move |element| async move {
+                        if let Ok(size) = element.data.get_scroll_size().await {
+                            max_height.set(size.height);
+                        }
+                    },
+                    {children}
                 }
             }
-            {title}
-        }
-        div {
-            class: "collapsible",
-            display: if *visible.read() { "contents" } else { "none" },
-            onmounted: move |element| async move {
-                if let Ok(size) = element.data.get_scroll_size().await {
-                    max_height.set(size.height);
-                }
-            },
-            {children}
         }
     }
 }

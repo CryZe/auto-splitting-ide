@@ -1,7 +1,10 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use std::{
     borrow::Cow,
     ffi::c_void,
     path::{Path, PathBuf},
+    rc::Rc,
     sync::{Arc, OnceLock},
     thread,
 };
@@ -22,7 +25,6 @@ use livesplit_auto_splitting::{
     time, TimerState,
 };
 use time::UtcOffset;
-use window_vibrancy::apply_mica;
 use windows_sys::Win32::{
     Foundation::{HWND, RECT},
     Graphics::Gdi::{CreateSolidBrush, DeleteObject, FillRect, GetDC, ReleaseDC},
@@ -34,8 +36,6 @@ mod ui;
 
 use timer::*;
 use ui::*;
-
-const MAIN_CSS: Asset = asset!("/assets/main.css");
 
 static UTC_OFFSET: OnceLock<time::UtcOffset> = OnceLock::new();
 
@@ -65,16 +65,22 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    #[cfg(windows)]
-    use_hook(|| {
-        // apply_blur(&window().window, None);
-        // apply_acrylic(&window().window, Some((0xFF, 0x0, 0x0, 0xFF)));
-        apply_mica(&window().window, None).unwrap();
+    let is_transparent = use_hook(|| {
+        #[cfg(windows)]
+        {
+            window_vibrancy::apply_mica(&window().window, Some(true)).is_ok()
+        }
+        #[cfg(not(windows))]
+        false
     });
 
     #[cfg(windows)]
-    use_wry_event_handler(|event, _| {
+    use_wry_event_handler(move |event, _| {
         use dioxus::desktop::tao::event::Event;
+
+        if !is_transparent {
+            return;
+        }
 
         if let Event::RedrawRequested(_) = event {
             struct GdiInfo(HWND, *mut c_void);
@@ -111,6 +117,7 @@ fn App() -> Element {
     let logs = use_signal_sync(LogEntries::new);
     let timer_state = use_signal_sync(|| TimerState::NotRunning);
     let split_index = use_signal_sync(|| 0);
+    let segment_splitted = use_signal_sync(Vec::new);
     let game_time = use_signal_sync(|| time::Duration::ZERO);
     let game_time_state = use_signal_sync(|| GameTimeState::NotInitialized);
     let variables = use_signal_sync(IndexMap::new);
@@ -120,6 +127,7 @@ fn App() -> Element {
     let statistics = use_signal_sync(StatisticsData::default);
     let timer = use_signal_sync(|| IdeTimer {
         split_index,
+        segment_splitted,
         timer_state,
         game_time,
         game_time_state,
@@ -138,9 +146,24 @@ fn App() -> Element {
     let auto_splitter = use_signal_sync(|| None);
 
     use_hook(move || {
-        thread::spawn(move || {
+        let thread = thread::spawn(move || {
             runtime_thread::run(auto_splitter, timer);
         });
+        struct ThreadJoiner(
+            Option<thread::JoinHandle<()>>,
+            SyncSignal<Option<livesplit_auto_splitting::AutoSplitter<IdeTimer>>>,
+        );
+        impl Drop for ThreadJoiner {
+            fn drop(&mut self) {
+                if let Some(auto_splitter) = &*self.1.read() {
+                    auto_splitter.interrupt_handle().interrupt();
+                }
+                let join_handle = self.0.take().unwrap();
+                runtime_thread::RUNNING.store(false, std::sync::atomic::Ordering::Relaxed);
+                let _ = join_handle.join();
+            }
+        }
+        Rc::new(ThreadJoiner(Some(thread), auto_splitter))
     });
 
     let mut left_divider = use_signal(|| DividerState {
@@ -177,9 +200,14 @@ fn App() -> Element {
         title
     });
 
+    const MAIN_CSS_INLINE: &str = include_str!("../assets/main.css");
+
     rsx! {
         // document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: MAIN_CSS }
+        document::Style { "{MAIN_CSS_INLINE}" }
+        if is_transparent {
+            document::Style { ":root {{ background: transparent; }}" }
+        }
         document::Title { "{title}" }
         MaterialIconStylesheet {}
 
@@ -219,12 +247,12 @@ fn App() -> Element {
                 }
             },
 
-            div {
+            ui::swapy::Container {
+                id: "swapy",
                 display: "flex",
                 width: "100%",
                 height: "100%",
                 gap: "10px",
-
                 LeftSideBar {
                     timer,
                     split_index,

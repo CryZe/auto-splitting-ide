@@ -1,8 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::HorizonalDivider;
-
-use super::{DividerState, LogEntries, Logs, SourcePanel};
+use super::{DividerState, LogEntries, Logs};
 
 #[component]
 pub fn CentralPanel(logs: SyncSignal<LogEntries>, bottom_divider: Signal<DividerState>) -> Element {
@@ -15,10 +13,6 @@ pub fn CentralPanel(logs: SyncSignal<LogEntries>, bottom_divider: Signal<Divider
             display: "flex",
             flex_direction: "column",
             gap: "10px",
-            SourcePanel { show_editor }
-            if show_editor() {
-                HorizonalDivider { state: bottom_divider }
-            }
             Logs {
                 logs,
                 show_editor,

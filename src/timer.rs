@@ -31,6 +31,7 @@ impl fmt::Display for GameTimeState {
 #[derive(Copy, Clone)]
 pub struct IdeTimer {
     pub split_index: SyncSignal<usize>,
+    pub segment_splitted: SyncSignal<Vec<bool>>,
     pub timer_state: SyncSignal<TimerState>,
     pub game_time: SyncSignal<time::Duration>,
     pub game_time_state: SyncSignal<GameTimeState>,
@@ -183,6 +184,7 @@ impl Timer for IdeTimer {
 
     fn split(&mut self) {
         if self.timer_state() == TimerState::Running {
+            self.segment_splitted.write().push(true);
             *self.split_index.write() += 1;
             self.logs
                 .write()
@@ -192,6 +194,7 @@ impl Timer for IdeTimer {
 
     fn skip_split(&mut self) {
         if self.timer_state() == TimerState::Running {
+            self.segment_splitted.write().push(false);
             *self.split_index.write() += 1;
             self.logs
                 .write()
@@ -204,6 +207,7 @@ impl Timer for IdeTimer {
             self.timer_state.set(TimerState::Running);
         }
         if self.timer_state() == TimerState::Running {
+            self.segment_splitted.write().pop();
             let new_split = self.split_index.read().saturating_sub(1);
             *self.split_index.write() = new_split;
             self.logs
@@ -216,6 +220,7 @@ impl Timer for IdeTimer {
         if self.timer_state() != TimerState::NotRunning {
             self.timer_state.set(TimerState::NotRunning);
             self.split_index.set(0);
+            self.segment_splitted.write().clear();
             self.game_time.set(time::Duration::ZERO);
             self.game_time_state.set(GameTimeState::NotInitialized);
             self.variables.write().clear();
@@ -260,6 +265,14 @@ impl Timer for IdeTimer {
         self.logs
             .write()
             .push_level(format!("{message}"), log_level);
+    }
+
+    fn current_split_index(&self) -> Option<usize> {
+        Some(*self.split_index.read())
+    }
+
+    fn segment_splitted(&self, index: usize) -> Option<bool> {
+        self.segment_splitted.read().get(index).copied()
     }
 }
 

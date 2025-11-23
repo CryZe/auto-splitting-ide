@@ -20,7 +20,7 @@ pub fn LeftSideBar(
     width: f64,
 ) -> Element {
     rsx! {
-        SideBar { drag_side: true, width,
+        SideBar { width,
             AutoSplitterControl {
                 timer,
                 runtime,

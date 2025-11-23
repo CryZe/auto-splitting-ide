@@ -1,6 +1,6 @@
 use std::{path::PathBuf, sync::Arc};
 
-use dioxus::prelude::*;
+use dioxus::{desktop::window, prelude::*};
 use livesplit_auto_splitting::{
     settings::{self, FileFilter, WidgetKind},
     wasi_path, AutoSplitter,
@@ -283,7 +283,7 @@ fn FileSelect(
     let onclick = move |_| {
         let current_path = current_path.clone();
         async move {
-            let mut dialog = rfd::AsyncFileDialog::new();
+            let mut dialog = rfd::AsyncFileDialog::new().set_parent(&window().window);
             if let Some(current_path) = current_path.and_then(|p| wasi_path::to_native(&p, true)) {
                 if let Some(parent) = current_path.parent() {
                     dialog = dialog.set_directory(parent);

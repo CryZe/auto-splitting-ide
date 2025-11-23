@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn SideBar(children: Element, drag_side: bool, width: f64) -> Element {
+pub fn SideBar(children: Element, width: f64) -> Element {
     rsx! {
         div {
             class: "bar",

@@ -16,7 +16,7 @@ pub fn RightSideBar(
     width: f64,
 ) -> Element {
     rsx! {
-        SideBar { drag_side: false, width,
+        SideBar { width,
             Variables { variables }
             Processes { processes }
             SettingsGui { settings_widgets, settings_map, auto_splitter }
