@@ -9,6 +9,9 @@ on:
     tags:
       - "*"
 
+permissions:
+  contents: write
+
 # The colors mess with the problem matcher.
 # env:
 # CARGO_TERM_COLOR: always
@@ -20,14 +23,9 @@ jobs:
       fail-fast: false
       matrix:
         label:
-          #   - Windows aarch64
           - Windows i686
           - Windows x86_64
           - Windows x86_64-v3
-          #   - Linux arm Hardware Float
-          #   - Linux armv7 Hardware Float
-          #   - Linux aarch64
-          #   - Linux i686
           - Linux x86_64
           - Linux x86_64-v3
           - macOS aarch64
@@ -35,12 +33,6 @@ jobs:
           - macOS x86_64-v3
 
         include:
-          #   - label: Windows aarch64
-          #     target: aarch64-pc-windows-msvc
-          #     os: windows-latest
-          #     cross: skip
-          #     install_target: true
-
           - label: Windows i686
             target: i686-pc-windows-msvc
             os: windows-latest
@@ -59,33 +51,6 @@ jobs:
             rust_flags: -C target-cpu=x86-64-v3
             os: windows-latest
             cross: skip
-
-          #   - label: Linux arm Hardware Float
-          #     target: arm-unknown-linux-gnueabihf
-          #     os: ubuntu-latest
-          #     features:
-          #     rust_flags: -L target/arm-unknown-linux-gnueabihf/release
-          #     bits: 32bit
-
-          #   - label: Linux armv7 Hardware Float
-          #     target: armv7-unknown-linux-gnueabihf
-          #     os: ubuntu-latest
-          #     features:
-          #     rust_flags: -L target/armv7-unknown-linux-gnueabihf/release
-          #     bits: 32bit
-
-          #   - label: Linux aarch64
-          #     target: aarch64-unknown-linux-gnu
-          #     os: ubuntu-latest
-          #     rust_flags: -L target/aarch64-unknown-linux-gnu/release
-          #     features: auto-splitting
-
-          #   - label: Linux i686
-          #     target: i686-unknown-linux-gnu
-          #     os: ubuntu-latest
-          #     features:
-          #     rust_flags: -L target/i686-unknown-linux-gnu/release
-          #     bits: 32bit
 
           - label: Linux x86_64
             target: x86_64-unknown-linux-gnu
