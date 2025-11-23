@@ -58,7 +58,22 @@ pub fn use_transparency() -> bool {
     is_transparent
 }
 
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
+pub fn use_transparency() -> bool {
+    use dioxus::{core::use_hook, desktop::window};
+
+    use_hook(|| {
+        window_vibrancy::apply_vibrancy(
+            &window().window,
+            window_vibrancy::NSVisualEffectMaterial::UnderWindowBackground,
+            None,
+            None,
+        )
+        .is_ok()
+    })
+}
+
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn use_transparency() -> bool {
     false
 }
