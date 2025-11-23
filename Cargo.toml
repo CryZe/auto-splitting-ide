@@ -10,14 +10,16 @@ edition = "2021"
 livesplit-auto-splitting = { git = "https://github.com/LiveSplit/livesplit-core", features = ["debugger-support"] }
 dioxus = { version = "0.7.1", features = [] }
 window-vibrancy = "0.7.1"
-rfd = "0.15.2"
+rfd = { version = "0.15.2", default-features = false }
 indexmap = "2.7.1"
 time = { version = "0.3.36", features = ["local-offset"] }
-windows-sys = { version = "0.61.2", features = ["Win32_Graphics_Gdi", "Win32_Foundation"] }
 dioxus-material-icons = "4.0.1"
 byte-unit = "5.0.3"
 notify = "8.0.0"
 mime_guess = "2.0.5"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Graphics_Gdi", "Win32_Foundation"] }
 
 [features]
 default = ["desktop"]
